@@ -242,7 +242,7 @@ def ejecutar(ruta, bats):
         else:
             for i in arq:
                 if i == bat:
-                    p = subprocess.Popen(execute , shell=True, stdout=subprocess.call('ls -l', shell=True))
+                    p = subprocess.Popen(execute, shell=True, stdout=subprocess.PIPE)
                     stdout, stderr = p.communicate()
                     print(p.returncode)  # is 0 if success
                     print(bat)
