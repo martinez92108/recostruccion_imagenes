@@ -103,8 +103,8 @@ def criar_PRM(hdfs, prm, ruta):
     # ver posibilidad de crear una función#
     ######################################
     ######################################
-    directorio_prms = rota + "prm//"
-    salida_hdf = rota + "modisRecorte//"
+    directorio_prms = rota + "prm/"
+    salida_hdf = rota + "modisRecorte/"
     if os.path.exists(directorio_prms):
 
         print('Directorio para arquivos PRM criado...')
@@ -112,17 +112,18 @@ def criar_PRM(hdfs, prm, ruta):
         a=messagebox.askquestion("Create folders", "Create folders for prm and modisRecorte ")
         if a == "yes":
             os.makedirs(directorio_prms)
-            print("hola mundo")
+            os.chmod(directorio_prms, 0o777)
+
         elif "no":
             exit()
-
-
 
     if os.path.exists(salida_hdf):
         print('Directorio para arquivos HDF pre-processados criado...')
     else:
         print("creando directorio")
         os.makedirs(salida_hdf)
+        os.chmod(salida_hdf, 0o777)
+
 
     #######################################
     # ver posibilidad de crear una función#
@@ -186,25 +187,19 @@ def criar_bat(ruta, prms):
     a=len(nom_file)
 
 
-
-
-
-
-
-
-
-
     #input("Ingrese un nome para o arquivo .BAT...")
 
-    directorio_bat = rota + "bat//"
+    directorio_bat = rota + "bat/"
     if os.path.exists(directorio_bat):
         print('Directorio para arquivos PRM criado...')
     else:
         os.makedirs(directorio_bat)
+        os.chmod(directorio_bat, 0o777)
+
 
     completo = directorio_bat + nom_file + '.sh'
     nom_file1 = nom_file + '.sh'
-    #os.chmod(nom_file1, 0o644)
+    #
 
     try:
         bat = os.listdir(dir_prms)
@@ -243,6 +238,7 @@ def ejecutar(ruta, bats):
             for i in arq:
                 if i == bat:
                     p = subprocess.Popen(execute, shell=True, stdout=subprocess.PIPE)
+                    # = subprocess.call("sh bash.sh", shell=True)
                     stdout, stderr = p.communicate()
                     print(p.returncode)  # is 0 if success
                     print(bat)
@@ -288,6 +284,8 @@ def clear ():
     te.focus_set()
 
 def prm2():
+
+    global prm
     te2.delete(0, END)
     ventana.filename = filedialog.askopenfilename(initialdir="/home/martinez/", title="Select file",
                                                       filetypes=((" files", "*.prm"), ("all files", "*.*")))
@@ -297,7 +295,6 @@ def prm2():
     print (prm)
 
 
-    global prm
 
 
 def activar_run():
