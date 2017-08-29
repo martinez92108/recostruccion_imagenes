@@ -13,6 +13,11 @@ from tkinter import ttk
 import gdal
 import  tkinter as tk
 import stat
+import os, sys, stat
+from subprocess import Popen, PIPE
+
+import sh
+
 
 
 #****************variables globales*************
@@ -35,8 +40,11 @@ def val_empty(rota):
     ruta = rota
     hdf = {}
     completo = {}
+    completo2 ={}
+
     cont1 = 0
     cont = 0
+    cont2=0
     try:
         # fazer função deste
         arq = os.listdir(ruta)
@@ -64,8 +72,16 @@ def val_empty(rota):
                 if (data.attributes != None) and (data.datasets != None):
                     if var == "MOD":
                         cont1 = cont1 + 1
+                        cont2=cont2 + 1
                         #print("arquivo MODIS:.. ", ver, "...OK")
+
                         completo[cont1] = ver
+                        global salida1
+
+
+                        #salida1 = ver[-45:-29] + ".hdf"
+                        #completo2[cont2] = salida1
+                        #print(completo2)
                         list.insert(END,ver)
 
                         # função CrearPRM
@@ -84,14 +100,27 @@ def val_empty(rota):
 
 
     #print("estructura ",prm)
-    criar_PRM (completo, prm, ruta)
+    criar_PRM (completo,ruta)
 
 
 
 
 
 
-def criar_PRM(hdfs, prm, ruta):
+
+
+
+
+
+
+
+
+
+
+
+
+
+def criar_PRM(hdfs,ruta):
 
     entradas = {}  # diccionario com os nomes dos arquivos HDF
     entradas = hdfs  # diccionario com os nomes dos arquivos HDF
@@ -167,10 +196,14 @@ def criar_PRM(hdfs, prm, ruta):
                     # line = line.replace(line,  + values)
 
                 elif 'OUTPUT_FILENAME' in line:
+
+
                     salida = str(values1)
                     sal_hdf = salida[-45:-29] + ".hdf"
                     sal_completa = salida_hdf + sal_hdf
+
                     abrir.write("OUTPUT_FILENAME = " + sal_completa + "\n")
+
                     # print "Encontrado....", sal_completa
 
                 else:
@@ -179,17 +212,27 @@ def criar_PRM(hdfs, prm, ruta):
     criar_bat(rota, directorio_prms)
 
 
-def criar_bat(ruta, prms):
+
+
+
+def criar_bat(ruta,prms):
+
+
     dir_prms = prms
+
+
+
+
     rota = ruta
     nom_file = te3.get()
+
     global nom_file1
     a=len(nom_file)
 
 
     #input("Ingrese un nome para o arquivo .BAT...")
 
-    directorio_bat = rota + "bat/"
+    directorio_bat = rota
     if os.path.exists(directorio_bat):
         print('Directorio para arquivos PRM criado...')
     else:
@@ -198,8 +241,12 @@ def criar_bat(ruta, prms):
 
 
     completo = directorio_bat + nom_file + '.sh'
+
     nom_file1 = nom_file + '.sh'
-    #
+
+    #os.chmod(completo, stat.S_IXUSR + stat.S_IRUSR + stat.S_IWUSR + stat.S_IRGRP + stat.S_IXGRP)
+
+
 
     try:
         bat = os.listdir(dir_prms)
@@ -208,9 +255,10 @@ def criar_bat(ruta, prms):
             exit
         else:
             bates = open(completo, "w")
-            for i in bat:
-                if i.endswith(".prm"):
-                    bates.write(" resample –p " + dir_prms + i+ "\n" + "/home/martinez/Escritorio/img/modisRecorte/")
+
+
+
+            bates.write("for i in *hdf " + "\n"+ "do"+ "\n"+ " resample -p " + salida_prm +" "+ "-i" + " $i " + "-o /home/martinez/Escritorio/img/modisRecorte/"+"$i " +"hola mundo.hdf " +"\n"+ "done")
 
 
 
@@ -228,7 +276,8 @@ def ejecutar(ruta, bats):
     rota = ruta
     cont = 0
     bat = bats
-    execute = rota + bat
+    #print(bat,"hola")
+    completo= rota + bat
     try:
         arq = os.listdir(rota)
         if not arq:
@@ -237,8 +286,9 @@ def ejecutar(ruta, bats):
         else:
             for i in arq:
                 if i == bat:
-                    p = subprocess.Popen(execute, shell=True, stdout=subprocess.PIPE)
-                    # = subprocess.call("sh bash.sh", shell=True)
+
+                    p = subprocess.Popen("./prueba.sh", shell=True)
+
                     stdout, stderr = p.communicate()
                     print(p.returncode)  # is 0 if success
                     print(bat)
@@ -252,12 +302,26 @@ def ejecutar(ruta, bats):
         print(u'Rota de arquivos não existe....falho em função', fname)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 #********************FUNCIONES BOTONES*************************************
 
 
 def callback():
     ruta = (te.get())
     val_empty(ruta)
+    b7.config(state=ACTIVE)
+    te4.focus_set()
 
 def bruta ():
     te.delete(0, END)
@@ -266,7 +330,6 @@ def bruta ():
     file_path = os.path.join(current_directory, file_name)
     te.insert(INSERT, file_path)
 
-    print(file_path)
 
 
 
@@ -285,14 +348,35 @@ def clear ():
 
 def prm2():
 
+    global salida_prm
     global prm
     te2.delete(0, END)
-    ventana.filename = filedialog.askopenfilename(initialdir="/home/martinez/", title="Select file",
+    ventana.filename = filedialog.askopenfilename(initialdir=te.get(), title="Select file",
                                                       filetypes=((" files", "*.prm"), ("all files", "*.*")))
     te2.insert(INSERT, ventana.filename)
     prm = ventana.filename
+    salida_prm = prm[-45:-4] + ".prm"
 
-    print (prm)
+
+    print (salida_prm)
+
+
+
+def sh ():
+
+    te4.delete(0, END)
+    ventana.filename = filedialog.askopenfilename(initialdir=te.get(), title="Select file",
+                                                      filetypes=((" files", "*.sh"), ("all files", "*s.h")))
+    #te4.insert(INSERT, ventana.filename)
+    nom_sal = ventana.filename
+    salida_prm = nom_sal[-10:-4] + ".sh"
+    te4.insert(INSERT,salida_prm)
+
+    print(salida_prm)
+
+
+
+
 
 
 
@@ -303,6 +387,7 @@ def activar_run():
     b5.config(state=ACTIVE)
 
 def act_run():
+
     te3.focus_set()
     b5.config(state=ACTIVE)
     b6.config(state=ACTIVE)
@@ -310,10 +395,17 @@ def act_run():
 def run1():
     nom_file = te3.get()
     a = len(nom_file)
-    if a >0:
+    if a > 1:
         b1.config(state=ACTIVE)
+
+
     else:
-        messagebox.showinfo("Say Hello", "Diguite nombre para el archivo .bat")
+       if a == 0:
+
+            messagebox.showerror("ERROR", "nombre invalido  ")
+
+
+
 
 #**************************************************************************
 
@@ -326,15 +418,19 @@ def run1():
 
 ventana = Tk()
 ventana.title("procesamiento de imagenes ")
-ventana.config (bg="#036C1A")
+ventana.config (bg="#0971B2")
 #*********************Comandos de interface*****************************************
 w = Label(ventana, text="Seleccione  la ruta .HDF" )
 w.place(relx=1, x=-500, y=30, anchor=CENTER)
 w2 = Label(ventana, text="Seleccione Archivo .PRM" )
 w2.place(relx=1, x=-500, y=60, anchor=CENTER)
 
-w3 = Label(ventana, text="Diguite Nombre Para .bat" )
+w3 = Label(ventana, text="Diguite Nombre Para .sh" )
 w3.place(relx=1, x=-500, y=90, anchor=CENTER)
+
+
+w4 = Label(ventana, text="seleccione archivo . sh" )
+w4.place(relx=1, x=-500, y=120, anchor=CENTER)
 
 
 
@@ -352,6 +448,11 @@ te3.get()
 te3.place(relx=1, x=-350, y=90, anchor=CENTER)
 
 
+te4= Entry(ventana)
+te4.get()
+te4.place(relx=1, x=-350, y=120, anchor=CENTER)
+
+
 
 
 
@@ -363,9 +464,15 @@ b4.config(state=DISABLED)
 
 b4.place(relx=1, x=-230, y=60, anchor=CENTER)
 
-b1 = Button(ventana, text="Run", width=5, command=callback)
+b7= Button(ventana, text="...", width=5, command=sh )
+b7.place(relx=1, x=-230, y=120, anchor=CENTER)
+b7.config(state=DISABLED)
+
+
+
+b1 = Button(ventana, text="Verificar hdf", width=10, command=callback)
 b1.config(state=DISABLED)
-b1.place(relx=1, x=-160, y=90, anchor=CENTER)
+b1.place(relx=1, x=-142, y=90, anchor=CENTER)
 
 b2 = Button(ventana, text="Next", width=5, command=activar_run)
 b2.place(relx=1, x=-160, y=30, anchor=CENTER)
@@ -380,6 +487,12 @@ b6.config(state=DISABLED)
 
 b3 = Button(ventana, text="Clear", width=5, command=clear)
 b3.place(relx=1, x=-50, y=50, anchor=CENTER)
+
+
+b8 = Button(ventana, text="Recortar.hdf", width=10, command=callback)
+b8.config(state=DISABLED)
+b8.place(relx=1, x=-142, y=120, anchor=CENTER)
+
 
 
 
