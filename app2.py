@@ -321,7 +321,9 @@ def callback():
     ruta = (te.get())
     val_empty(ruta)
     b7.config(state=ACTIVE)
+
     te4.focus_set()
+
 
 def bruta ():
     te.delete(0, END)
